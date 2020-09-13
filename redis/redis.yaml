@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redash-redis
+  namespace: redash
+  labels:
+    app: redash-redis
+spec:
+  selector:
+    matchLabels:
+      app: redash-redis
+  template:
+    metadata:
+      labels:
+        app: redash-redis
+    spec:
+      containers:
+      - name: redash-redis
+        image: redis:5.0.0-alpine
+        resources:
+          limits:
+            memory: "256Mi"
+          requests:
+            memory: "256Mi"
+        ports:
+        - name: redash-redis
+          containerPort: 6379
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.version: 1.2.0
+  labels:
+    app: reddash-redis
+  name: redash-redis
+  namespace: redash
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+      name: redash-redis
+  selector:
+    app: redash-redis

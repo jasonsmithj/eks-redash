@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redash-worker
+  namespace: redash
+  labels:
+    app: redash-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redash-worker
+  template:
+    metadata:
+      labels:
+        app: redash-worker
+    spec:
+      containers:
+      - name: redash-worher
+        image: redash/redash:8.0.0.b32245
+        envFrom:
+          - configMapRef:
+              name: redash-bese
+          - configMapRef:
+              name: redash-worker
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: "1024Mi"
+          requests:
+            memory: "1024Mi"
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: db_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: db_password
+        - name: REDASH_DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@<database ip address or dns>/redash"
+        - name: REDASH_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: redash_cookie_secret
+        args: ["scheduler"]

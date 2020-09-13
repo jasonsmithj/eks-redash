@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redash-worker
+  namespace: redash
+data:
+  WORKERS_COUNT: "2"
+  QUEUES:  "queries,scheduled_queries,celery"
+
+
+

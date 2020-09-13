@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redash-server
+  namespace: redash
+data:
+  REDASH_WEB_WORKERS: "2"
+
+
+

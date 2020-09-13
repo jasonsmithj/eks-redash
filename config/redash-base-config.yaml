@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redash-bese
+  namespace: redash
+data:
+  REDASH_FEATURE_EXTENDED_ALERT_OPTIONS: "true"
+  PYTHONUNBUFFERED: "0"
+  REDASH_LOG_LEVEL: "INFO"
+  REDASH_REDIS_URL: "redis://redash-redis:6379/0"

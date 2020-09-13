@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redash-server
+  namespace: redash
+  labels:
+    app: redash-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redash-server
+  template:
+    metadata:
+      labels:
+        app: redash-server
+    spec:
+      containers:
+      - name: redash-server
+        image: redash/redash:8.0.0.b32245
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: "1024Mi"
+          requests:
+            memory: "1024Mi"
+        command:
+        - /bin/sh
+        - -c
+        - /app/bin/docker-entrypoint create_db; /app/bin/docker-entrypoint server
+        envFrom:
+          - configMapRef:
+              name: redash-bese
+          - configMapRef:
+              name: redash-server
+        env:
+        - name: REDASH_GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: google_client_id
+        - name: REDASH_GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: google_secret_key
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: db_user
+        - name: REDASH_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: redash_cookie_secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redash-secret
+              key: db_password
+        - name: REDASH_DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@<database ip address or dns>/redash"
+        ports:
+        - containerPort: 5000
+          name: redash-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redash-server
+  namespace: redash
+  labels:
+    app: redash-server
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: redash-server
